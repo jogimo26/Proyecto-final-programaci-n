@@ -80,10 +80,10 @@ def generateQR(id,program,role,buffer):
 # Argumentos: id (entero), password (cadena), program (cadena) y role (cadena)
 # Si el usuario ya existe deber retornar  "User already registered"
 # Si el usuario no existe debe registar el usuario en la base de datos y retornar  "User succesfully registered"
-def registerUser(id,password,program,role):    
-    pass
-   
-            
+def registerUser(id: int, password: str, program: str, role: str):    
+    user = {'id': f'{id}','password': f'{password}', 'program': f'{program}','role': f'{role}'}
+    cadenaenjson = dumps(user)
+    
 
 
 #Se debe complementar esta función
