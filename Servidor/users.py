@@ -6,6 +6,7 @@
 # pip install pillow
 
 # No modificar estos módulos que se importan
+from sqlite3 import ProgrammingError
 from pyzbar.pyzbar import decode
 from PIL import Image
 from json import dumps
@@ -80,9 +81,27 @@ def generateQR(id,program,role,buffer):
 # Argumentos: id (entero), password (cadena), program (cadena) y role (cadena)
 # Si el usuario ya existe deber retornar  "User already registered"
 # Si el usuario no existe debe registar el usuario en la base de datos y retornar  "User succesfully registered"
-def registerUser(id: int, password: str, program: str, role: str):    
-    user = {'id': f'{id}','password': f'{password}', 'program': f'{program}','role': f'{role}'}
-    cadenaenjson = dumps(user)
+def registerUser(id: int, password: str, program: str, role: str):
+    file = open('Proyecto Final/Datos/datos.txt','a') # se abre el archivo (((para editar)))
+    file2 = open('Proyecto Final/Datos/datos.txt','r') # leer
+    user = {'id': f'{id}','password': f'{password}', 'program': f'{program}','role': f'{role}'} # Diccionario para los datos del usuario
+    verificador = file2.readlines()
+
+    with file:
+        usuarios = [] # Lista para todos los datos ya escritos
+        for i in verificador: # Bucle para ver si existe ya el usuario o no 
+            usuarios.append(loads(i))        
+
+        for t in range(len(usuarios)): # Bucle que verifica si ya está el usuario o no
+            idUsuarioNuevo = user["id"] # id del usuario
+            idUsuario = usuarios[t]['id'] # Siempre se actualiza con más gente registrada
+            if  idUsuarioNuevo == idUsuario:
+                assert user['id'] != (usuarios[t]['id']), "User already registered" # Siempre va a ser verdadero en caso de que la condición se cumpla
+                break # Rompe el bucle
+            else:
+                print("User successfully registered")
+                file.write(dumps(user)+"\n") # Se escriben los datos del usuario en notación JSON (si no está registrado ya)    
+    file.close() # Se cierra el archivo
     
 
 
@@ -90,7 +109,7 @@ def registerUser(id: int, password: str, program: str, role: str):
 # Función que genera el código QR
 # retorna el código QR si el id y la contraseña son correctos (usuario registrado)
 # Ayuda (debe usar la función generateQR)
-def getQR(id,password):
+def getQR(id: int,password: str):
     buffer = io.BytesIO()                    
 
     # Aquí va su código     
@@ -122,3 +141,8 @@ def sendQR(png):
 
     return spot
     
+id = int(input("Id "))
+password = str(input("Passwrod "))
+program = str(input("´´prrograma "))
+role = str(input("rol "))
+registerUser(id,password,program,role)
