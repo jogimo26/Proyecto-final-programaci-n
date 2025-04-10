@@ -82,8 +82,8 @@ def generateQR(id,program,role,buffer):
 # Si el usuario ya existe deber retornar  "User already registered"
 # Si el usuario no existe debe registar el usuario en la base de datos y retornar  "User succesfully registered"
 def registerUser(id: int, password: str, program: str, role: str):
-    file = open('Laboratorios/Proyecto Final/datos.txt','a') # se abre el archivo (((para editar)))
-    file2 = open('Laboratorios/Proyecto Final/datos.txt','r') # leer
+    file = open('Proyecto Final/Datos/datos.txt','a') # se abre el archivo (((para editar)))
+    file2 = open('Proyecto Final/Datos/datos.txt','r') # leer
     user = {'id': f'{id}','password': f'{password}', 'program': f'{program}','role': f'{role}'} # Diccionario para los datos del usuario
     verificador = file2.readlines()
 
@@ -97,10 +97,11 @@ def registerUser(id: int, password: str, program: str, role: str):
             idUsuario = usuarios[t]['id'] # Siempre se actualiza con más gente registrada
             if  idUsuarioNuevo == idUsuario:
                 assert user['id'] != (usuarios[t]['id']), "User already registered" # Siempre va a ser verdadero en caso de que la condición se cumpla
-                break # Rompe el bucle
-        else:
-            print("User successfully registered")
-        file.write(dumps(user)+"\n") # Se escriben los datos del usuario en notación JSON (si no está registrado ya)    
+                break 
+            else:
+                file.write(dumps(user)+"\n") # Se escriben los datos del usuario en notación JSON (si no está registrado ya)
+                print("User successfully registered")
+                break    
     file.close() # Se cierra el archivo
     
 
@@ -113,20 +114,8 @@ def getQR(id: int,password: str):
     buffer = io.BytesIO()                    
 
     # Aquí va su código     
-    file = open('Laboratorios/Proyecto Final/datos.txt', 'r')  
-    usuarios = file.readlines()
-    file.close()
-
-    for linea in usuarios: #Recorremos cada línea del archivo (cada usuario)
-        user = loads(linea)  # Convertimos de JSON a diccionario
-        if user['id'] == str(id) and user['password'] == password: #Verificamos si el id y la contraseña coinciden con los datos del usuario
-            # Si coincide el usuario, generamos el QR
-            generateQR(user['id'], user['program'], user['role'], buffer)
-            return buffer  # Retornamos el buffer con el QR
-
-    # Si no se encontró usuario válido
-    assert False, "Invalid user credentials"
-
+        
+    return buffer
 
 # Se debe complementar esta función
 # Función que recibe el código QR como PNG
@@ -149,8 +138,6 @@ def sendQR(png):
     # Luego debe verificar qué puestos de parqueadero existen disponibles según el rol, si hay disponibles le debe asignar 
     # un puesto al usuario y retornarlo como una cadena
 
-
-
     spot=""
 
     return spot
@@ -159,4 +146,5 @@ id = int(input("Id "))
 password = str(input("Passwrod "))
 program = str(input("´´prrograma "))
 role = str(input("rol "))
+
 registerUser(id,password,program,role)
