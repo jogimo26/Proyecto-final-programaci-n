@@ -98,10 +98,9 @@ def registerUser(id: int, password: str, program: str, role: str):
             if  idUsuarioNuevo == idUsuario:
                 assert user['id'] != (usuarios[t]['id']), "User already registered" # Siempre va a ser verdadero en caso de que la condición se cumpla
                 break 
-            else:
-                file.write(dumps(user)+"\n") # Se escriben los datos del usuario en notación JSON (si no está registrado ya)
-                print("User successfully registered")
-                break    
+        else:
+            file.write(dumps(user)+"\n") # Se escriben los datos del usuario en notación JSON (si no está registrado ya)
+            print("User successfully registered")    
     file.close() # Se cierra el archivo
     
 
