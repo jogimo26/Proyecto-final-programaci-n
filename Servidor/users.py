@@ -41,7 +41,7 @@ def decrypt_AES_GCM(encryptedMsg, secretKey):
     return plaintext
 
 # Función que genera un código QR (no modificar)
-def generateQR(id,program,role,buffer):
+def generateQR(id,program,role,buffer): # Esta es generateqr
     # Variables globales para la clave y la fecha
     global key
     global date
@@ -105,15 +105,26 @@ def registerUser(id: int, password: str, program: str, role: str):
     
 
 
-#Se debe complementar esta función
+# Se debe complementar esta función
 # Función que genera el código QR
 # retorna el código QR si el id y la contraseña son correctos (usuario registrado)
 # Ayuda (debe usar la función generateQR)
-def getQR(id: int,password: str):
+def getQR(id: str, password: str, program: str, role: str):
     buffer = io.BytesIO()                    
 
-    # Aquí va su código     
-        
+    # Aquí va su código
+    file = open('Proyecto Final/Datos/datos.txt','r') # leer archivo
+    verificador = file.readlines()
+    with file:
+        usuarios = [] # Lista para todos los datos ya escritos
+        for i in verificador: # Bucle para escribir todo lo que haya en el archivo de json a diccionarios
+            usuarios.append(loads(i))
+    file.close() # Se cierra el archivo
+
+    if int(usuarios[-1]['id']) == id and usuarios[-1]['password'] == password: # Si todo es igual, lo genera
+        generateQR(id,password,program,role)
+    else:
+        print("User credentials invalid")
     return buffer
 
 # Se debe complementar esta función
@@ -134,6 +145,9 @@ def sendQR(png):
     print(decrypted)
 
     # En este punto la función debe determinar que el texto del código QR corresponde a un usuario registrado.
+
+    # Se puede hacer reciclando parte del código del registro de los usuarios
+
     # Luego debe verificar qué puestos de parqueadero existen disponibles según el rol, si hay disponibles le debe asignar 
     # un puesto al usuario y retornarlo como una cadena
 
@@ -146,4 +160,5 @@ password = str(input("Passwrod "))
 program = str(input("´´prrograma "))
 role = str(input("rol "))
 
-registerUser(id,password,program,role)
+qr = getQR(id,password,program,role)
+print(qr)
