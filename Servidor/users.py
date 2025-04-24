@@ -20,7 +20,7 @@ import io
 from datetime import datetime
 
 # Nombre del archivo con la base de datos de usuarios
-usersFileName="users.txt"
+usersFileName="datos.txt"
 
 # Fecha actual
 date=None
@@ -82,8 +82,8 @@ def generateQR(id,program,role,buffer): # Esta es generateqr
 # Si el usuario ya existe deber retornar  "User already registered"
 # Si el usuario no existe debe registar el usuario en la base de datos y retornar  "User succesfully registered"
 def registerUser(id: int, password: str, program: str, role: str):
-    file = open('Proyecto Final/Datos/datos.txt','a') # se abre el archivo (((para editar)))
-    file2 = open('Proyecto Final/Datos/datos.txt','r') # leer
+    file = open(f'Proyecto Final/Datos/{usersFileName}','a') # se abre el archivo (((para editar)))
+    file2 = open(f'Proyecto Final/Datos/{usersFileName}','r') # leer
     user = {'id': f'{id}','password': f'{password}', 'program': f'{program}','role': f'{role}'} # Diccionario para los datos del usuario
     verificador = file2.readlines()
 
@@ -109,11 +109,11 @@ def registerUser(id: int, password: str, program: str, role: str):
 # Función que genera el código QR
 # retorna el código QR si el id y la contraseña son correctos (usuario registrado)
 # Ayuda (debe usar la función generateQR)
-def getQR(id: str, password: str, program: str, role: str):
+def getQR(id: str, password: str):
     buffer = io.BytesIO()                    
 
     # Aquí va su código
-    file = open('Proyecto Final/Datos/datos.txt','r') # leer archivo
+    file = open(f'Proyecto Final/Datos/{usersFileName}','r') # leer archivo
     verificador = file.readlines()
     with file:
         usuarios = [] # Lista para todos los datos ya escritos
@@ -122,7 +122,7 @@ def getQR(id: str, password: str, program: str, role: str):
     file.close() # Se cierra el archivo
 
     if int(usuarios[-1]['id']) == id and usuarios[-1]['password'] == password: # Si todo es igual, lo genera
-        generateQR(id,password,program,role)
+        generateQR(id,password)
     else:
         print("User credentials invalid")
     return buffer
@@ -155,10 +155,12 @@ def sendQR(png):
 
     return spot
     
+
+
 id = int(input("Id "))
 password = str(input("Passwrod "))
 program = str(input("´´prrograma "))
 role = str(input("rol "))
 
+registerUser(id,password,program,role)
 qr = getQR(id,password,program,role)
-print(qr)
