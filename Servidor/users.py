@@ -155,12 +155,3 @@ def sendQR(png):
 
     return spot
     
-
-
-id = int(input("Id "))
-password = str(input("Passwrod "))
-program = str(input("´´prrograma "))
-role = str(input("rol "))
-
-registerUser(id,password,program,role)
-qr = getQR(id,password,program,role)
