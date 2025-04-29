@@ -92,17 +92,23 @@ def registerUser(id: int, password: str, program: str, role: str):
         for i in verificador: # Bucle para ver si existe ya el usuario o no 
             usuarios.append(loads(i))        
 
-        for t in range(len(usuarios)): # Bucle que verifica si ya está el usuario o no
-            idUsuarioNuevo = user["id"] # id del usuario
-            idUsuario = usuarios[t]['id'] # Siempre se actualiza con más gente registrada
-            if  idUsuarioNuevo == idUsuario:
-                assert user['id'] != (usuarios[t]['id']), "User already registered" # Siempre va a ser verdadero en caso de que la condición se cumpla
-                break # Rompe el bucle
-        else:
-            print("User successfully registered")
-            file.write(dumps(user)+"\n") # Se escriben los datos del usuario en notación JSON (si no está registrado ya)    
-    file.close() # Se cierra el archivo
+        if len(usuarios):
+            for t in range(len(usuarios)): # Bucle que verifica si ya está el usuario o no
+                idUsuarioNuevo = user["id"] # id del usuario
+                idUsuario = usuarios[t]['id'] # Siempre se actualiza con más gente registrada
+                if  idUsuarioNuevo == idUsuario:
+                    #assert user['id'] != (usuarios[t]['id']), "User already registered" # Siempre va a ser verdadero en caso de que la condición se cumpla
+                    retStr="User already registered"
     
+                else:
+                    print("User successfully registered")    
+                    file.write(dumps(user)+"\n") # Se escriben los datos del usuario en notación JSON (si no está registrado ya)    
+                    retStr="User successfully registered"
+        else:
+            file.write(dumps(user)+"\n") # Se escriben los datos del usuario en notación JSON (si no está registrado ya)    
+            retStr="User successfully registered"
+    return retStr
+
 
 
 #Se debe complementar esta función
@@ -119,10 +125,10 @@ def getQR(id: int,password: str):
         usuarios = [] # Lista para todos los datos ya escritos
         for i in verificador: # Bucle para escribir todo lo que haya en el archivo de json a diccionarios
             usuarios.append(loads(i))
-    file.close() # Se cierra el archivo
+    #file.close() # Se cierra el archivo
 
     if int(usuarios[-1]['id']) == id and usuarios[-1]['password'] == password: # Si todo es igual, lo genera
-        generateQR(id,password,program,role)
+        generateQR(id,buffer)
     else:
         print("User credentials invalid")
     return buffer
@@ -149,7 +155,7 @@ def sendQR(png):
     decrypted=loads(decrypt_AES_GCM((base64.b64decode(data["qr_text0"]),base64.b64decode(data["qr_text1"]),base64.b64decode(data["qr_text2"])), key))
     print(decrypted)
 
-    puestos = {'parqueoEstudiante':['e1','e2','e3'], 'estudianteocupado' : [], 'parqueoprofesor': ['p1', 'p2','p3'], ' profesorocupado': []}
+    puestos = {'parqueoEstudiante':['e1','e2','e3'], 'estudianteocupado' : [], 'parqueoprofesor': ['p1', 'p2','p3'], 'profesorocupado': []}
 
     with open('Proyecto Final/Datos/datos.txt','r') as file: 
         users = file.readlines()
@@ -157,17 +163,17 @@ def sendQR(png):
     for i in users: 
         user = loads(i)
         if user['id'] == decrypted ['id']:
-            if user['role']== 'estudiante' and puestos == ['parqueoEstudiante']:
+            if user['role']== 'estudiante' and puestos['parqueoEstudiante']:
                 espacio = puestos['parqueoEstudiante'].pop(0)
                 puestos['estudianteocupado'].append(espacio)
                 return f'el estudiante fue asignado al puesto {espacio}'
             
-        elif user['role']== 'profesor' and puestos == ['parqueoprofesor']:
+            elif user['role']== 'profesor' and puestos['parqueoprofesor']:
                 espacio = puestos['parqueoprofesor'].pop(0)
                 puestos[' profesorocupado'].append(espacio)
                 return f'el profesor fue asignado al puesto {espacio}'
-        else:
-            return 'no hay parqueos disponible'
+            else:
+                return 'no hay parqueos disponible'
         
         
 
@@ -185,10 +191,3 @@ def sendQR(png):
     spot=""
 
     return spot
-    
-id = int(input("Id "))
-password = str(input("Passwrod "))
-program = str(input("´´prrograma "))
-role = str(input("rol "))
-registerUser(id,password,program,role)
-getQR(id,password)
