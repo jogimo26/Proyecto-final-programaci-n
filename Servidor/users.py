@@ -20,7 +20,8 @@ import io
 from datetime import datetime
 
 # Nombre del archivo con la base de datos de usuarios
-usersFileName="users.txt"
+usersFileName="Datos\datos.txt"
+
 
 # Fecha actual
 date=None
@@ -41,7 +42,7 @@ def decrypt_AES_GCM(encryptedMsg, secretKey):
     return plaintext
 
 # Función que genera un código QR (no modificar)
-def generateQR(id,program,role,buffer): # Esta es generateqr
+def generateQR(id,program,role,buffer):
     # Variables globales para la clave y la fecha
     global key
     global date
@@ -84,42 +85,54 @@ def generateQR(id,program,role,buffer): # Esta es generateqr
 def registerUser(id: int, password: str, program: str, role: str):
     verificador = []
     with open(usersFileName, 'r') as file:
-        verificador = file.readlines()
+        verificador = file.readlines() # Lee todas las líneas del archivo de usuarios
 
-    usuarios = [loads(i) for i in verificador]
+    usuarios = []
+    for i in verificador:
+        usuarios.append(loads(i))# Convierte cada línea (JSON) en un diccionario de Python
+
 
     for u in usuarios:
-        if u['id'] == str(id):
+        if u['id'] == str(id):# Verifica si ya existe un usuario con el mismo ID
             print("User already registered")
-            return "User already registered"
+            return "User already registered" #Retorna si el usuario ya existe
+
 
     user = {'id': str(id), 'password': password, 'program': program, 'role': role}
     with open(usersFileName, 'a') as file:
-        file.write(dumps(user) + "\n")
+        file.write(dumps(user) + "\n") # Guarda el nuevo usuario en formato JSON
+
     print("User successfully registered")
     return "User successfully registered"
 
-# Se debe complementar esta función
+
+
+
+#Se debe complementar esta función
 # Función que genera el código QR
 # retorna el código QR si el id y la contraseña son correctos (usuario registrado)
 # Ayuda (debe usar la función generateQR)
-def getQR(id: str, password: str, program: str, role: str):
-    buffer = io.BytesIO()                    
+def getQR(id: int, password: str):
+    buffer = io.BytesIO()
+    with open(usersFileName, 'r') as file:
+        verificador = file.readlines() # Lee todos los usuarios registrados
 
-    # Aquí va su código
-    file = open('Proyecto Final/Datos/datos.txt','r') # leer archivo
-    verificador = file.readlines()
-    with file:
-        usuarios = [] # Lista para todos los datos ya escritos
-        for i in verificador: # Bucle para escribir todo lo que haya en el archivo de json a diccionarios
-            usuarios.append(loads(i))
-    file.close() # Se cierra el archivo
+    for lineas in verificador:
+          # Convierte la línea en un diccionario
+        usuario = loads(lineas)
+        
+        if usuario['id'] == str(id) and usuario['password'] == password:
+             # Llama la función para generar el QR
+            generateQR(usuario['id'], usuario['program'], usuario['role'], buffer)
+            return buffer
 
-    if int(usuarios[-1]['id']) == id and usuarios[-1]['password'] == password: # Si todo es igual, lo genera
-        generateQR(id,program,role,buffer)
-    else:
-        print("User credentials invalid")
-    return buffer
+    print("User credentials invalid")
+    return None
+    
+
+    # Si no se encontró usuario válido
+ 
+
 
 # Se debe complementar esta función
 # Función que recibe el código QR como PNG
@@ -137,22 +150,38 @@ def sendQR(png):
     # Desencripta con la clave actual, decodificando antes desde base64. Posteriormente convierte a diccionario (generar error si la clave expiró)
     decrypted=loads(decrypt_AES_GCM((base64.b64decode(data["qr_text0"]),base64.b64decode(data["qr_text1"]),base64.b64decode(data["qr_text2"])), key))
     print(decrypted)
+    # Diccionario con los puestos de parqueo disponibles y ocupados
+    puestos = {'parqueoEstudiante': ['e1', 'e2', 'e3'],'estudianteocupado': [],'parqueoprofesor': ['p1', 'p2', 'p3'],'profesorocupado': []}
+
+    with open(usersFileName, 'r') as file:
+        users = file.readlines()
+
+    for i in users:
+        user = loads(i)
+        if user['id'] == decrypted['id']: # Verifica si el usuario existe
+            if user['role'] == 'estudiante' and puestos['parqueoEstudiante']:
+                espacio = puestos['parqueoEstudiante'].pop(0)
+                puestos['estudianteocupado'].append(espacio)
+                return f'el estudiante fue asignado al puesto {espacio}'
+            elif user['role'] == 'profesor' and puestos['parqueoprofesor']:
+                espacio = puestos['parqueoprofesor'].pop(0)
+                puestos['profesorocupado'].append(espacio)
+                return f'el profesor fue asignado al puesto {espacio}'
+            else:
+                return 'no hay parqueos disponibles'
+
+    return 'usuario no registrado'
+                
+
+
 
     # En este punto la función debe determinar que el texto del código QR corresponde a un usuario registrado.
-
-    # Se puede hacer reciclando parte del código del registro de los usuarios
-
     # Luego debe verificar qué puestos de parqueadero existen disponibles según el rol, si hay disponibles le debe asignar 
     # un puesto al usuario y retornarlo como una cadena
 
+
+""""
     spot=""
 
     return spot
-    
-# id = int(input("Id "))
-# password = str(input("Passwrod "))
-# program = str(input("´´prrograma "))
-# role = str(input("rol "))
-
-# qr = getQR(id,password,program,role)
-# print(qr)
+    """
