@@ -20,7 +20,7 @@ import io
 from datetime import datetime
 
 # Nombre del archivo con la base de datos de usuarios
-usersFileName="Datos\datos.txt"
+usersFileName="Datos/datos.txt"
 
 
 # Fecha actual
@@ -118,20 +118,17 @@ def getQR(id: int, password: str):
         verificador = file.readlines() # Lee todos los usuarios registrados
 
     for lineas in verificador:
-          # Convierte la línea en un diccionario
+        # Convierte la línea en un diccionario
         usuario = loads(lineas)
         
         if usuario['id'] == str(id) and usuario['password'] == password:
-             # Llama la función para generar el QR
+            # Llama la función para generar el QR
             generateQR(usuario['id'], usuario['program'], usuario['role'], buffer)
             return buffer
-
-    print("User credentials invalid")
-    return None
-    
-
     # Si no se encontró usuario válido
- 
+    print("User credentials invalid")
+    return None    
+
 
 
 # Se debe complementar esta función
@@ -150,6 +147,9 @@ def sendQR(png):
     # Desencripta con la clave actual, decodificando antes desde base64. Posteriormente convierte a diccionario (generar error si la clave expiró)
     decrypted=loads(decrypt_AES_GCM((base64.b64decode(data["qr_text0"]),base64.b64decode(data["qr_text1"]),base64.b64decode(data["qr_text2"])), key))
     print(decrypted)
+    # En este punto la función debe determinar que el texto del código QR corresponde a un usuario registrado.
+    # Luego debe verificar qué puestos de parqueadero existen disponibles según el rol, si hay disponibles le debe asignar 
+    # un puesto al usuario y retornarlo como una cadena
     # Diccionario con los puestos de parqueo disponibles y ocupados
     puestos = {'parqueoEstudiante': ['e1', 'e2', 'e3'],'estudianteocupado': [],'parqueoprofesor': ['p1', 'p2', 'p3'],'profesorocupado': []}
 
@@ -163,25 +163,14 @@ def sendQR(png):
                 espacio = puestos['parqueoEstudiante'].pop(0)
                 puestos['estudianteocupado'].append(espacio)
                 return f'el estudiante fue asignado al puesto {espacio}'
+            
             elif user['role'] == 'profesor' and puestos['parqueoprofesor']:
                 espacio = puestos['parqueoprofesor'].pop(0)
                 puestos['profesorocupado'].append(espacio)
                 return f'el profesor fue asignado al puesto {espacio}'
+            
             else:
                 return 'no hay parqueos disponibles'
 
     return 'usuario no registrado'
                 
-
-
-
-    # En este punto la función debe determinar que el texto del código QR corresponde a un usuario registrado.
-    # Luego debe verificar qué puestos de parqueadero existen disponibles según el rol, si hay disponibles le debe asignar 
-    # un puesto al usuario y retornarlo como una cadena
-
-
-""""
-    spot=""
-
-    return spot
-    """
