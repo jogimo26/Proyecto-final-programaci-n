@@ -139,13 +139,13 @@ def sendQR(png):
     # Decodifica código QR
     decodedQR = decode(Image.open(io.BytesIO(png)))[0].data.decode('ascii')
     data = loads(decodedQR)
+    # Desencripta con la clave actual, decodificando antes desde base64. Posteriormente convierte a diccionario (generar error si la clave expiró)
+    decrypted=loads(decrypt_AES_GCM((base64.b64decode(data["qr_text0"]),base64.b64decode(data["qr_text1"]),base64.b64decode(data["qr_text2"])), key))
 
-    decrypted = loads(decrypt_AES_GCM(
-            (base64.b64decode(data["qr_text0"]), 
-             base64.b64decode(data["qr_text1"]), 
-             base64.b64decode(data["qr_text2"])), 
-            key))
 
+# En este punto la función debe determinar que el texto del código QR corresponde a un usuario registrado.
+    # Luego debe verificar qué puestos de parqueadero existen disponibles según el rol, si hay disponibles le debe asignar 
+    # un puesto al usuario y retornarlo como una cadena
     # Verifica usuario registrado
 
     with open(usersFileName, 'r') as file:
