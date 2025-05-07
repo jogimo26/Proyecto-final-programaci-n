@@ -136,41 +136,60 @@ def getQR(id: int, password: str):
 # debe verificar si el QR contiene datos que pueden ser desencriptados con la clave (key), y si el usuario está registrado
 # Debe asignar un puesto de parqueadero dentro de los disponibles.
 def sendQR(png):
-
     # Decodifica código QR
     decodedQR = decode(Image.open(io.BytesIO(png)))[0].data.decode('ascii')
+    data = loads(decodedQR)
 
-    #Convierte el JSON en el texto del código QR a un diccionario
-    data=loads(decodedQR)
+    decrypted = loads(decrypt_AES_GCM(
+            (base64.b64decode(data["qr_text0"]), 
+             base64.b64decode(data["qr_text1"]), 
+             base64.b64decode(data["qr_text2"])), 
+            key))
 
-
-    # Desencripta con la clave actual, decodificando antes desde base64. Posteriormente convierte a diccionario (generar error si la clave expiró)
-    decrypted=loads(decrypt_AES_GCM((base64.b64decode(data["qr_text0"]),base64.b64decode(data["qr_text1"]),base64.b64decode(data["qr_text2"])), key))
-    print(decrypted)
-    # En este punto la función debe determinar que el texto del código QR corresponde a un usuario registrado.
-    # Luego debe verificar qué puestos de parqueadero existen disponibles según el rol, si hay disponibles le debe asignar 
-    # un puesto al usuario y retornarlo como una cadena
-    # Diccionario con los puestos de parqueo disponibles y ocupados
-    puestos = {'parqueoEstudiante': ['e1', 'e2', 'e3'],'estudianteocupado': [],'parqueoprofesor': ['p1', 'p2', 'p3'],'profesorocupado': []}
+    # Verifica usuario registrado
 
     with open(usersFileName, 'r') as file:
-        users = file.readlines()
+        users = []
+        for line in file:
+            users.append(loads(line))
 
-    for i in users:
-        user = loads(i)
-        if user['id'] == decrypted['id']: # Verifica si el usuario existe
-            if user['role'] == 'estudiante' and puestos['parqueoEstudiante']:
-                espacio = puestos['parqueoEstudiante'].pop(0)
-                puestos['estudianteocupado'].append(espacio)
-                return f'el estudiante fue asignado al puesto {espacio}'
-            
-            elif user['role'] == 'profesor' and puestos['parqueoprofesor']:
-                espacio = puestos['parqueoprofesor'].pop(0)
-                puestos['profesorocupado'].append(espacio)
-                return f'el profesor fue asignado al puesto {espacio}'
-            
-            else:
-                return 'no hay parqueos disponibles'
 
-    return 'usuario no registrado'
-                
+    user_found = None
+    for user in users:
+        if (user['id'] == decrypted['id'] and 
+            user['program'] == decrypted['program'] and 
+            user['role'] == decrypted['role']):
+            user_found = user
+            break
+
+    if user_found == None:  # Cambiado de 'if not user_found'
+        print("Usuario no registrado")
+        return None
+
+    # Archivo de puestos (versión más simple sin try-except)
+    parking_file = "Datos/puestos.txt"
+    parking_spots = {'profesor': {'disponibles': ['P1', 'P2', 'P3', 'P4', 'P5'], 'ocupados': []},'estudiante': {'disponibles': ['S1', 'S2', 'S3', 'S4', 'S5'], 'ocupados': []}}
+    
+    # Intenta cargar el archivo si existe
+    file = open(parking_file, 'r')
+    parking_spots = loads(file.read())
+    file.close()
+
+    role = user_found['role']
+    
+    if role != 'profesor' and role != 'estudiante':
+        print(f"Rol inválido: '{role}'. Solo 'profesor' o 'estudiante'")
+        return None
+
+    if len(parking_spots[role]['disponibles']) > 0:
+        puesto_asignado = parking_spots[role]['disponibles'].pop(0)
+        parking_spots[role]['ocupados'].append(puesto_asignado)
+        
+        with open(parking_file, 'w') as file:
+            file.write(dumps(parking_spots))
+        
+        print(f"Puesto asignado: {puesto_asignado}")
+        return puesto_asignado
+    else:
+        print("No hay puestos disponibles")
+        return None
