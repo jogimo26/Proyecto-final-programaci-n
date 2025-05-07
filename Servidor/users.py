@@ -153,7 +153,7 @@ def sendQR(png):
         for line in file:
             users.append(loads(line))
 
-
+#bule para verificar datos correctos del usuario
     user_found = None
     for user in users:
         if (user['id'] == decrypted['id'] and 
@@ -161,12 +161,12 @@ def sendQR(png):
             user['role'] == decrypted['role']):
             user_found = user
             break
-
-    if user_found == None:  # Cambiado de 'if not user_found'
+#en caso de que el usuario no exista o este vacio devolvera none he imprimira que no esta registrado
+    if user_found == None:  
         print("Usuario no registrado")
         return None
 
-    # Archivo de puestos (versión más simple sin try-except)
+    # Archivo de puestos 
     parking_file = "Datos/puestos.txt"
     parking_spots = {'profesor': {'disponibles': ['P1', 'P2', 'P3', 'P4', 'P5'], 'ocupados': []},'estudiante': {'disponibles': ['S1', 'S2', 'S3', 'S4', 'S5'], 'ocupados': []}}
     
@@ -176,13 +176,13 @@ def sendQR(png):
     file.close()
 
     role = user_found['role']
-    
+    #si el role es diferente de profesor o estudiante retorna un none he imprimira que el role que ingreso no es valido
     if role != 'profesor' and role != 'estudiante':
         print(f"Rol inválido: '{role}'. Solo 'profesor' o 'estudiante'")
         return None
 
     if len(parking_spots[role]['disponibles']) > 0:
-        puesto_asignado = parking_spots[role]['disponibles'].pop(0)
+        puesto_asignado = parking_spots[role]['disponibles'].pop(0)# esste .pop lo que hace es sacar de lso disponible el primer elemento para que despues lo agregue en el puesto asigando con el .append
         parking_spots[role]['ocupados'].append(puesto_asignado)
         
         with open(parking_file, 'w') as file:
